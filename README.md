@@ -1,6 +1,4 @@
 # SportsAchievementToken
-
-# Overview:
 SportsAchievementToken (SPRT) is an ERC20 token designed to reward users for their sports achievements. Users can log their activities, earn tokens based on their performance, and redeem these tokens for various services.
 
 # Description:
@@ -8,8 +6,11 @@ SportsAchievementToken (SPRT) is a smart contract built on the Ethereum blockcha
 
 # Features:
 a. Earn Tokens: Users can earn tokens based on their sports activities.
+
 b. Redeem Tokens: Tokens can be redeemed for services.
+
 c. Transfer Tokens: Tokens can be transferred between users.
+
 d. Activity Logging: Users can log their sports activities, which are stored on-chain.
 
 # Key Details:
@@ -42,21 +43,76 @@ How it works:
 
    Users can see the sports activities they or others have logged.
 
-#Executing Program:
+# Executing Program:
 To run this program, you can use Remix, an online Solidity IDE. To get started, go to the Remix website at https://remix.ethereum.org/.
 
 ```solidity
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
 
+import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/v4.0.0/contracts/token/ERC20/ERC20.sol";
+
+contract SportsAchievementToken is ERC20 {
+    mapping(address => SportsActivity[]) private userActivities;
+    struct SportsActivity {
+        uint age;
+        uint recordsBroken;
+        uint trainingHours;
+    }
+
+    event TokensEarned(address indexed user, uint amount);
+    event TokensRedeemed(address indexed user, uint amount, string service);
+
+    constructor() ERC20("SportsAchievementToken", "SPRT") {
+        _mint(msg.sender, 1000000 * 10 ** decimals()); // Mint initial tokens to contract deployer
+    }
+
+    function logSportsActivity(uint age, uint recordsBroken, uint trainingHours) external {
+        require(age > 0 || recordsBroken > 0 || trainingHours > 0, "Record at least one activity to proceed");
+
+        // Calculate tokens earned based on activities
+        uint tokensEarned = 0;
+
+        if (recordsBroken > 0) {
+            tokensEarned += recordsBroken * 100; // Example: 100 tokens per record broken
+        }
+        if (trainingHours >= 50) {
+            tokensEarned += 200; // Example: Additional 200 tokens for training 50+ hours
+        }
+
+        require(tokensEarned > 0, "No activities meet the criteria for earning tokens");
+
+        _mint(msg.sender, tokensEarned);
+        emit TokensEarned(msg.sender, tokensEarned);
+
+        // Record the activity
+        userActivities[msg.sender].push(SportsActivity({
+            age: age,
+            recordsBroken: recordsBroken,
+            trainingHours: trainingHours
+        }));
+    }
+
+    function redeemTokens(uint amount, string memory service) external {
+        require(balanceOf(msg.sender) >= amount, "Low balance");
+        _burn(msg.sender, amount);
+        emit TokensRedeemed(msg.sender, amount, service);
+    }
+
+    function getUserSportsActivities(address user) external view returns (SportsActivity[] memory) {
+        return userActivities[user];
+    }
+
+    function transferTo(address to, uint amount) public {
+        transfer(to, amount);
+    }
+}
 ```
-
-Testing:
-Compile the code to ensure it works correctly and simulate transactions to verify functionality.
-
-Conclusion:
+# Conclusion:
 SportsAchievementToken (SPRT), a blockchain-based token, offers a unique and exciting way to motivate sports enthusiasts by encouraging their achievements. It uses the ERC20 standard to ensure secure, clear, and decentralised reward administration. Whatever your goals are, SportsAchievementToken provides a complete solution for tracking sporting achievements and awards. It can be used to monitor your development, earn prizes, and exchange tokens for goods and services.
 
-Author:
+# Author:
 Bhavya Chhabra
 
-License:
-This"SportsAchievementToken" is licensed under the Mit license.
+# License:
+[MIT License](./LICENSE)
